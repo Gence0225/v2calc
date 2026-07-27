@@ -145,7 +145,7 @@
   </div>
 </details>
 
-<footer>数式: 資金×リスク% ÷ SL幅<br>USDJPY=1000通貨切捨て / 金=1oz切捨て(1oz未満は見送り)</footer>
+<footer>数式: 資金×リスク% ÷ SL幅<br>USDJPY=1000通貨切捨て / 金=0.1oz切捨て(0.1oz未満は見送り)</footer>
 
 <script>
 let mode='fx', sub='main';
@@ -197,14 +197,14 @@ function calc(){
     mir.innerHTML='⚠ 桁を間違えて <b>'+(gmo*10).toLocaleString('ja-JP',{maximumFractionDigits:0})+'</b> と入力すると → リスク<b>'+fmt(wrong)+'円</b>(資金の'+(wrong/cap*100).toFixed(0)+'%)';
     showStats(qty*slw*0.01);
   }else{
-    const rawOz=riskJPY/(slw*conv), oz=Math.floor(rawOz);
-    if(oz<1){
-      big.className='big ng'; big.textContent='見送り(最小1ozで1%超過)';
-      mid.innerHTML='計算値 '+rawOz.toFixed(2)+'oz — 1ozだとリスク約'+fmt(Math.round(slw*conv))+'円('+(slw*conv/cap*100).toFixed(1)+'%)';
+    const rawOz=riskJPY/(slw*conv), oz=Math.floor(rawOz*10)/10;
+    if(oz<0.1){
+      big.className='big ng'; big.textContent='見送り(最小0.1ozで1%超過)';
+      mid.innerHTML='計算値 '+rawOz.toFixed(2)+'oz — 0.1ozだとリスク約'+fmt(Math.round(slw*conv*0.1))+'円('+(slw*conv*0.1/cap*100).toFixed(1)+'%)';
       rl.textContent='ルール: 見送る(事前に決めた許容がある場合のみ例外)'; showStats(0); save(); return;
     }
-    big.className='big'; big.textContent=(oz/10).toFixed(1);
-    mid.innerHTML='= <b>'+oz+'オンス</b>(ロット表記 '+(oz/10).toFixed(1)+')';
+    big.className='big'; big.textContent=oz.toFixed(1);
+    mid.innerHTML='= <b>'+oz.toFixed(1)+'オンス</b>(GMO CFDの取引数量にそのまま入力)';
     rl.textContent='想定リスク: 約'+fmt(Math.round(oz*slw*conv))+'円(資金の'+(oz*slw*conv/cap*100).toFixed(2)+'%)';
     showStats(oz*slw*conv);
   }
