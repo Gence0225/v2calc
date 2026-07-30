@@ -1,6 +1,6 @@
 {
-  "name": "v2 ロット計算機",
-  "short_name": "v2計算機",
+  "name": "八咫鏡 — ロット計算機",
+  "short_name": "八咫鏡",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0e1123",
