@@ -30,6 +30,10 @@
   .cap-label{font-size:11px;color:var(--dim);letter-spacing:.12em;margin-bottom:10px}
   /* 完全に揃うグリッド: ラベル / 入力 / 単位 */
   .row{display:grid;grid-template-columns:1fr 150px 40px;align-items:center;gap:10px;padding:6px 0}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .cell label{font-size:10px;color:var(--dim);display:block;margin-bottom:3px}
+  .cell input{width:100%;padding:8px 10px;background:var(--ink);border:1px solid var(--line);border-radius:8px;color:var(--txt);font-family:var(--mono);font-size:17px;text-align:right;outline:none;box-sizing:border-box}
+  .cell.auto input{border-style:dashed;color:var(--cy)}
   .row label{font-size:13px;color:var(--dim)}
   .row input{width:100%;padding:10px 12px;background:var(--ink);border:1px solid var(--line);border-radius:8px;color:var(--txt);font-family:var(--mono);font-size:20px;text-align:right;outline:none}
   .row input:focus{border-color:#5555aa}
@@ -97,18 +101,7 @@
   <div id="verdict"></div>
 </div>
 
-<div class="card">
-  <div class="row"><label>口座資金(今の残高)</label><input id="cap" type="tel" inputmode="numeric" value="300000"><span class="unit">円</span></div>
-  <div class="row"><label>リスク</label><input id="risk" type="tel" inputmode="decimal" value="1.0"><span class="unit">%</span></div>
-  <div class="row auto" id="slwRow"><label id="slLabel">SL幅(通知から自動)</label><input id="slw" type="tel" inputmode="decimal" placeholder="自動"><span class="unit" id="slUnit">pips</span></div>
-  <div class="row" id="convRow" style="display:none"><label>円換算レート</label><input id="conv" type="tel" inputmode="decimal" value="161"><span class="unit">円</span></div>
-  <details class="sub" id="shieldBox"><summary>🛡 盾を使う(DDブレーキ・任意)</summary>
-    <div class="row"><label>過去最高残高</label><input id="peak" type="tel" inputmode="numeric" placeholder="未使用なら空欄"><span class="unit">円</span></div>
-    <div style="font-size:10px;color:#55557a;line-height:1.6;padding-top:4px">入力すると、残高が過去最高から8%以上下の間だけリスクが自動半減(年率14.1→12.9%、DD21→16%)。空欄なら固定リスクのまま。</div>
-  </details>
-</div>
 
-<div id="shield"></div>
 
 <div class="out" id="out">
   <div class="cap" id="outCap">GMOに入力する数字</div>
@@ -118,6 +111,21 @@
 </div>
 
 <div class="mirror" id="mirror"></div>
+
+<div class="card">
+  <div class="grid2">
+    <div class="cell"><label>口座資金(円)</label><input id="cap" type="tel" inputmode="numeric" value="300000"></div>
+    <div class="cell"><label>リスク(%)</label><input id="risk" type="tel" inputmode="decimal" value="1.0"></div>
+    <div class="cell auto" id="slwRow"><label id="slLabel">SL幅 <span id="slUnit">pips</span>(自動)</label><input id="slw" type="tel" inputmode="decimal" placeholder="自動"></div>
+    <div class="cell" id="convRow" style="display:none"><label>円換算レート</label><input id="conv" type="tel" inputmode="decimal" value="161"></div>
+  </div>
+  <details class="sub" id="shieldBox"><summary>🛡 盾を使う(DDブレーキ・任意)</summary>
+    <div class="row"><label>過去最高残高</label><input id="peak" type="tel" inputmode="numeric" placeholder="未使用なら空欄"><span class="unit">円</span></div>
+    <div style="font-size:10px;color:#55557a;line-height:1.6;padding-top:4px">入力すると、残高が過去最高から8%以上下の間だけリスクが自動半減。空欄なら固定リスクのまま。</div>
+  </details>
+</div>
+
+<div id="shield"></div>
 
 <div class="card" id="statCard" style="display:none">
   <div class="cap-label">この数量での統計の目安<span id="statSrc"></span></div>
