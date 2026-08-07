@@ -3,105 +3,114 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#0e1123">
+<meta name="theme-color" content="#0B0B12">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>八咫鏡 — ロット計算機</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&display=swap" rel="stylesheet">
+<title>八咫鏡・序</title>
 <style>
   :root{
-    --ink:#0e1123; --panel:#1a1a2e; --panel2:#16213e; --line:#333366;
-    --buy:#00E676; --sell:#FF1744; --qty:#FFD54F; --sl:#E040FB; --cy:#4fc3f7;
-    --txt:#e8e8f0; --dim:#8a8aa8; --warn:#FF1744;
-    --mono:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Menlo,monospace;
+    --ink:#0B0B12; --panel:#14141F; --panel2:#1A1726; --line:rgba(255,255,255,.08);
+    --txt:#E8E6F0; --dim:#8A889C; --faint:#5E5C70;
+    --g1:#E8C877; --g2:#B8862E; --take:#5FCF9A; --sora:#6FAEDC; --shu:#E0796B; --fuji:#A398D8;
+    --mono:ui-monospace,"SF Mono","Roboto Mono",Menlo,monospace;
     --sans:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;
+    --mincho:"Shippori Mincho",serif;
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  body{background:var(--ink);color:var(--txt);font-family:var(--sans);min-height:100vh;padding:14px 14px 40px;max-width:480px;margin:0 auto}
-  header{display:flex;align-items:baseline;gap:8px;margin-bottom:12px}
-  header h1{font-size:15px;font-weight:600;letter-spacing:.04em}
-  header .sub{font-size:11px;color:var(--dim)}
-  .tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
-  .tab{padding:10px 4px;text-align:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;font-size:14px;font-weight:600;color:var(--dim);cursor:pointer}
-  .tab .tf{display:block;font-size:10px;font-weight:400;margin-top:2px;color:var(--dim)}
-  .tab.on{color:var(--txt);border-color:#5555aa;background:var(--panel2)}
-  .tab.on.late{border-color:var(--cy)}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
-  .cap-label{font-size:11px;color:var(--dim);letter-spacing:.12em;margin-bottom:10px}
-  /* 完全に揃うグリッド: ラベル / 入力 / 単位 */
-  .row{display:grid;grid-template-columns:1fr 150px 40px;align-items:center;gap:10px;padding:6px 0}
+  body{background:var(--ink);color:var(--txt);font-family:var(--sans);min-height:100vh;padding:16px 13px 44px;max-width:480px;margin:0 auto}
+  .goldtext{background:linear-gradient(135deg,var(--g1) 25%,var(--g2) 95%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  header{display:flex;align-items:center;gap:9px;margin-bottom:2px}
+  header img{width:24px;height:24px;border-radius:6px}
+  header h1{font-family:var(--mincho);font-size:21px;font-weight:700;letter-spacing:.05em}
+  header h1 span{font-size:14px}
+  .subttl{font-size:10.5px;color:var(--faint);margin:0 0 14px 33px}
+  .sec{display:flex;align-items:center;gap:10px;margin:16px 0 8px}
+  .sec h2{font-family:var(--mincho);font-size:11.5px;margin:0;letter-spacing:.3em;font-weight:600;color:var(--g1)}
+  .sec .rule{flex:1;height:1px;background:var(--line)}
+
+  .symtabs{display:flex;gap:7px;margin-bottom:8px}
+  .symtab{flex:1;background:var(--panel);color:var(--dim);border:1px solid var(--line);border-radius:10px;padding:9px 4px;font-size:12.5px;font-weight:600;text-align:center;cursor:pointer}
+  .symtab.on{background:var(--panel2);border-color:rgba(232,200,119,.5);color:var(--g1)}
+  .subtabs{display:flex;gap:7px;margin-bottom:14px}
+  .subtab{flex:1;background:var(--panel);color:var(--dim);border:1px solid var(--line);border-radius:10px;padding:7px 4px;font-size:11.5px;text-align:center;cursor:pointer}
+  .subtab.on{background:var(--panel2);border-color:rgba(111,174,220,.5);color:var(--sora)}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px;margin-bottom:10px}
+  .cap-label{font-size:10.5px;color:var(--faint);letter-spacing:.1em;margin-bottom:9px}
+
+  .out{background:var(--panel);border:1px solid rgba(232,200,119,.3);border-radius:14px;padding:16px 14px;margin-bottom:10px;text-align:center}
+  .out .cap{font-size:10.5px;color:var(--faint);letter-spacing:.15em}
+  .out .big{font-family:var(--mono);font-size:62px;font-weight:700;line-height:1.1;margin:4px 0;
+    background:linear-gradient(135deg,var(--g1) 20%,var(--g2) 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .out .big.ng{font-size:20px;padding:14px 0;line-height:1.6;background:none;color:var(--shu);-webkit-text-fill-color:var(--shu)}
+  .out .mid{font-family:var(--mono);font-size:14px;color:var(--dim)}
+  .out .mid b{color:var(--g1);font-weight:600}
+  .out .risk{font-size:11.5px;color:var(--faint);margin-top:6px}
+
+  #verdict{display:none;border-radius:11px;padding:12px;margin-top:10px;text-align:center;font-size:14px;font-weight:600;line-height:1.7}
+  #shield{display:none;border:1px solid rgba(111,174,220,.4);background:rgba(111,174,220,.06);border-radius:11px;padding:9px 12px;margin-bottom:10px;font-size:11.5px;color:var(--sora);text-align:center;line-height:1.6}
+  .mirror{display:none;border:1px solid rgba(224,121,107,.4);background:rgba(224,121,107,.06);border-radius:11px;padding:9px 12px;margin-bottom:10px;font-size:11.5px;color:var(--shu);text-align:center;line-height:1.6}
+  .mirror b{font-family:var(--mono);font-size:13.5px}
+
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .cell label{font-size:10px;color:var(--dim);display:block;margin-bottom:3px}
-  .cell input{width:100%;padding:8px 10px;background:var(--ink);border:1px solid var(--line);border-radius:8px;color:var(--txt);font-family:var(--mono);font-size:17px;text-align:right;outline:none;box-sizing:border-box}
-  .cell.auto input{border-style:dashed;color:var(--cy)}
-  .row label{font-size:13px;color:var(--dim)}
-  .row input{width:100%;padding:10px 12px;background:var(--ink);border:1px solid var(--line);border-radius:8px;color:var(--txt);font-family:var(--mono);font-size:20px;text-align:right;outline:none}
-  .row input:focus{border-color:#5555aa}
-  .row .unit{font-size:12px;color:var(--dim)}
-  .row.hl input{border-color:var(--sl);color:var(--sl)}
-  .row.auto input{border-style:dashed;color:var(--cy)}
-  #paste{width:100%;padding:11px 12px;background:var(--ink);border:1px dashed #5555aa;border-radius:8px;color:var(--txt);font-size:13px;margin-bottom:8px}
-  #fetchBtn{width:100%;padding:11px;background:var(--panel2);border:1px solid #5555aa;border-radius:8px;color:var(--cy);font-size:13px;font-weight:600;cursor:pointer}
-  .out{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:16px 14px;margin-bottom:12px;text-align:center}
-  .out .cap{font-size:11px;color:var(--dim);letter-spacing:.15em}
-  .out .big{font-family:var(--mono);font-size:64px;font-weight:700;color:var(--qty);line-height:1.15;margin:2px 0}
-  .out .big.ng{font-size:23px;color:var(--warn);padding:18px 0;line-height:1.5}
-  .out .mid{font-family:var(--mono);font-size:15px;color:var(--txt)}
-  .out .mid b{color:var(--qty);font-weight:600}
-  .out .risk{font-size:12px;color:var(--dim);margin-top:6px}
-  #verdict{display:none;border-radius:10px;padding:12px;margin-top:10px;text-align:center;font-size:15px;font-weight:600;line-height:1.7}
-  #shield{display:none;border:1px solid var(--cy);background:rgba(79,195,247,.08);border-radius:10px;padding:9px 12px;margin-bottom:12px;font-size:12px;color:var(--cy);text-align:center;line-height:1.6}
-  .mirror{display:none;border:1px solid rgba(255,23,68,.45);background:rgba(255,23,68,.08);border-radius:10px;padding:9px 12px;margin-bottom:12px;font-size:12px;color:#ff8fa3;text-align:center;line-height:1.6}
-  .mirror b{font-family:var(--mono);color:var(--warn);font-size:14px}
-  .srow{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--dim);padding:4px 0}
-  .srow b{font-family:var(--mono);font-size:15px;color:var(--txt)}
-  .srow b.pos{color:var(--buy)} .srow b.neg{color:var(--sell)}
-  details{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px}
-  summary{font-size:13px;color:var(--dim);cursor:pointer;list-style:none}
+  .cell label{font-size:10px;color:var(--faint);display:block;margin-bottom:4px}
+  .cell input{width:100%;padding:9px 10px;background:var(--ink);border:1px solid var(--line);border-radius:9px;color:var(--txt);font-family:var(--mono);font-size:17px;text-align:right;outline:none}
+  .cell input:focus{border-color:rgba(232,200,119,.5)}
+  .cell.auto input{border-style:dashed;color:var(--sora)}
+  .row{display:grid;grid-template-columns:1fr 140px 30px;align-items:center;gap:9px;padding:5px 0}
+  .row label{font-size:12px;color:var(--dim)}
+  .row input{width:100%;padding:9px 11px;background:var(--ink);border:1px solid var(--line);border-radius:9px;color:var(--txt);font-family:var(--mono);font-size:18px;text-align:right;outline:none}
+  .row input:focus{border-color:rgba(232,200,119,.5)}
+  .row .unit{font-size:11px;color:var(--faint)}
+  .row.hl input{border-color:rgba(163,152,216,.6);color:var(--fuji)}
+  .row.auto input{border-style:dashed;color:var(--sora)}
+
+  #paste{width:100%;padding:10px 12px;background:var(--ink);border:1px dashed rgba(255,255,255,.15);border-radius:9px;color:var(--txt);font-size:12.5px;margin-bottom:8px;font-family:var(--mono)}
+  #fetchBtn{width:100%;padding:11px;background:var(--panel2);border:1px solid rgba(232,200,119,.4);border-radius:9px;color:var(--g1);font-size:12.5px;font-weight:600;cursor:pointer;letter-spacing:.05em}
+  #fetchBtn:active{background:#221E30}
+
+  .srow{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;color:var(--dim);padding:4px 0}
+  .srow b{font-family:var(--mono);font-size:14px;color:var(--txt)}
+  .srow b.pos{color:var(--take)} .srow b.neg{color:var(--shu)}
+  details{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:10px}
+  summary{font-size:12px;color:var(--dim);cursor:pointer;list-style:none}
   summary::-webkit-details-marker{display:none}
-  summary::before{content:'▸ ';color:var(--dim)}
-  details[open] summary::before{content:'▾ '}
-  details ol{margin:10px 0 4px 20px;font-size:13px;line-height:2}
-  details li b{color:var(--qty)}
+  summary::before{content:'\25b8 ';color:var(--faint)}
+  details[open] summary::before{content:'\25be '}
+  details ol{margin:10px 0 4px 20px;font-size:12.5px;line-height:2;color:var(--dim)}
+  details li b{color:var(--g1)}
   details.sub{border:none;background:none;padding:6px 0 0;margin:0}
-  details.sub summary{font-size:11px;color:#55557a}
-  footer{font-size:10px;color:#55557a;text-align:center;margin-top:8px;line-height:1.7}
+  details.sub summary{font-size:10.5px;color:var(--faint)}
+  footer{font-family:var(--mincho);font-size:9.5px;color:#3A3848;text-align:center;margin-top:22px;line-height:2;letter-spacing:.1em}
   .hide{display:none !important}
 </style>
 </head>
 <body>
-<header><h1>八咫鏡</h1><span class="sub">真のリスクを映す — リスク固定・複利対応</span></header>
+<header><img src="icon-192.png" alt=""><h1 class="goldtext">八咫鏡<span>・序</span></h1></header>
+<div class="subttl">真のリスクを映す ── 資金 × risk% ÷ SL幅</div>
 
-<div class="tabs">
-  <div class="tab on" id="t_fx_main" onclick="setTab('fx','main')">USDJPY<span class="tf">定時乗車</span></div>
-  <div class="tab" id="t_fx_late" onclick="setTab('fx','late')">USDJPY<span class="tf">後乗り判定</span></div>
-  <div class="tab" id="t_au_main" onclick="setTab('au','main')">金 XAUUSD<span class="tf">定時乗車</span></div>
-  <div class="tab" id="t_au_late" onclick="setTab('au','late')">金 XAUUSD<span class="tf">後乗り判定</span></div>
+<div class="symtabs">
+  <div class="symtab on" id="s_fx" onclick="setTab('fx',sub)">円 USDJPY</div>
+  <div class="symtab" id="s_au" onclick="setTab('au',sub)">金 XAUUSD</div>
+</div>
+<div class="subtabs">
+  <div class="subtab on" id="b_main" onclick="setTab(mode,'main')">定時乗車</div>
+  <div class="subtab" id="b_late" onclick="setTab(mode,'late')">後乗り判定</div>
 </div>
 
 <div class="card">
-  <input id="paste" type="text" placeholder="📋 TV通知を貼る or 下のボタンで自動取得">
-  <button id="fetchBtn">🔄 最新シグナルを自動取得</button>
+  <input id="paste" type="text" placeholder="TV通知を貼る / 下のボタンで取得">
+  <button id="fetchBtn">最新シグナルを取得</button>
   <details class="sub"><summary>接続設定(初回のみ)</summary>
     <div class="row"><label>Worker URL</label><input id="wurl" type="text" placeholder="https://..." style="font-size:11px"><span class="unit"></span></div>
     <div class="row"><label>合言葉(key)</label><input id="wkey" type="text" placeholder="KEY" style="font-size:11px"><span class="unit"></span></div>
   </details>
 </div>
 
-<div class="card" id="slCard" style="display:none">
-  <div class="cap-label">📍 現在のSL(TVのSL移動通知から自動)</div>
-  <div id="slInfo" style="font-size:13px;line-height:1.8"></div>
-</div>
-
-<div class="card" id="lateCard">
-  <div class="cap-label">後乗り判定 — 上2つは通知から自動</div>
-  <div class="row auto"><label>シグナル価格</label><input id="sigP" type="tel" inputmode="decimal" placeholder="自動"><span class="unit"></span></div>
-  <div class="row auto"><label>SL価格</label><input id="slP" type="tel" inputmode="decimal" placeholder="自動"><span class="unit"></span></div>
-  <div class="row hl"><label>現在価格(手打ち)</label><input id="nowP" type="tel" inputmode="decimal" placeholder="今のレート"><span class="unit"></span></div>
-  <div id="verdict"></div>
-</div>
-
-
+<div class="sec"><h2>答</h2><div class="rule"></div></div>
 
 <div class="out" id="out">
   <div class="cap" id="outCap">GMOに入力する数字</div>
@@ -109,8 +118,23 @@
   <div class="mid" id="mid">通知を貼れば自動で出る</div>
   <div class="risk" id="riskLine"></div>
 </div>
-
 <div class="mirror" id="mirror"></div>
+<div id="shield"></div>
+
+<div class="card" id="lateCard">
+  <div class="cap-label">後乗り判定 ── 上2つは通知から自動</div>
+  <div class="row auto"><label>シグナル価格</label><input id="sigP" type="tel" inputmode="decimal" placeholder="自動"><span class="unit"></span></div>
+  <div class="row auto"><label>SL価格</label><input id="slP" type="tel" inputmode="decimal" placeholder="自動"><span class="unit"></span></div>
+  <div class="row hl"><label>現在価格(手打ち)</label><input id="nowP" type="tel" inputmode="decimal" placeholder="今のレート"><span class="unit"></span></div>
+  <div id="verdict"></div>
+</div>
+
+<div class="card" id="slCard" style="display:none">
+  <div class="cap-label">現在のSL(TVの移動通知から自動)</div>
+  <div id="slInfo" style="font-size:13px;line-height:1.8"></div>
+</div>
+
+<div class="sec"><h2>条 件</h2><div class="rule"></div></div>
 
 <div class="card">
   <div class="grid2">
@@ -119,25 +143,23 @@
     <div class="cell auto" id="slwRow"><label id="slLabel">SL幅 <span id="slUnit">pips</span>(自動)</label><input id="slw" type="tel" inputmode="decimal" placeholder="自動"></div>
     <div class="cell" id="convRow" style="display:none"><label>円換算レート</label><input id="conv" type="tel" inputmode="decimal" value="161"></div>
   </div>
-  <details class="sub" id="shieldBox"><summary>🛡 盾を使う(DDブレーキ・任意)</summary>
+  <details class="sub" id="shieldBox"><summary>盾を使う(DDブレーキ・任意)</summary>
     <div class="row"><label>過去最高残高</label><input id="peak" type="tel" inputmode="numeric" placeholder="未使用なら空欄"><span class="unit">円</span></div>
-    <div style="font-size:10px;color:#55557a;line-height:1.6;padding-top:4px">入力すると、残高が過去最高から8%以上下の間だけリスクが自動半減。空欄なら固定リスクのまま。</div>
+    <div style="font-size:10px;color:var(--faint);line-height:1.6;padding-top:4px">入力すると、残高が過去最高から8%以上下の間だけリスクが自動半減。空欄なら固定リスクのまま。</div>
   </details>
 </div>
 
-<div id="shield"></div>
-
 <div class="card" id="statCard" style="display:none">
-  <div class="cap-label">この数量での統計の目安<span id="statSrc"></span></div>
+  <div class="cap-label">この数量での目安<span id="statSrc"></span></div>
   <div class="srow"><span>勝った時の平均(勝率<span id="stWr"></span>)</span><b class="pos" id="stWin"></b></div>
   <div class="srow"><span>負けた時の平均</span><b class="neg" id="stLose"></b></div>
   <div class="srow"><span>大勝(リスク3倍超)の頻度</span><b id="stBig"></b></div>
   <div class="srow" style="border-top:1px solid var(--line);padding-top:8px;margin-top:4px"><span>1回あたりの期待値</span><b class="pos" id="stEv"></b></div>
-  <div style="font-size:10px;color:#55557a;margin-top:8px;line-height:1.6">※19年の実データ平均。次の1回は誰にも分からない——<span style="color:var(--dim)">6割は負けで終わるのが仕様</span>。</div>
+  <div style="font-size:10px;color:var(--faint);margin-top:8px;line-height:1.6">19年の実データ平均。次の1回は誰にも分からない ── 6割は負けで終わるのが仕様。</div>
 </div>
 
 <details>
-  <summary>発注チェックリスト・遅刻分岐表</summary>
+  <summary>発注の作法・遅刻分岐</summary>
   <ol>
     <li>通知の方向・SL価格を確認</li>
     <li>数量を<b>二度見</b></li>
@@ -145,17 +167,18 @@
     <li>逆指値=押し安値/戻り高値・期限<b>無期限</b></li>
     <li>発注 → 記録表に記入</li>
   </ol>
-  <div style="font-size:12px;color:var(--dim);margin-top:10px;line-height:1.9">
-  <b style="color:var(--txt)">遅刻分岐表:</b><br>
-  即動ける→乗る / 50%以内→乗る(数量自動再計算) /<br>
+  <div style="font-size:11.5px;color:var(--dim);margin-top:10px;line-height:1.9">
+  <b style="color:var(--txt)">遅刻分岐:</b><br>
+  即動ける→乗る / 50%以内→乗る(数量再計算) /<br>
   50%超→見送り→再ブレイク<b>1〜2本目</b>で乗る /<br>
   SL割れ→死亡確認 / <b>押し目待ちは常に禁止</b>
   </div>
 </details>
 
-<footer>数式: 資金×リスク% ÷ SL幅<br>USDJPY=1000通貨切捨て / 金=0.1oz切捨て(0.1oz未満は見送り)</footer>
+<footer>陰 陽 寮<br>USDJPY=1000通貨切捨て / 金=0.1oz切捨て</footer>
 
 <script>
+
 let mode='fx', sub='main';
 const $=id=>document.getElementById(id);
 const fmt=n=>n.toLocaleString('ja-JP');
@@ -163,8 +186,10 @@ const STATS={fx:{wr:39,avgWin:1.45,avgLoss:-0.62,ev:0.189,big:4.7},au:{wr:36,avg
 
 function setTab(m,s){
   mode=m; sub=s;
-  ['t_fx_main','t_fx_late','t_au_main','t_au_late'].forEach(id=>$(id).classList.remove('on','late'));
-  const el=$('t_'+m+'_'+s); el.classList.add('on'); if(s==='late') el.classList.add('late');
+  ['s_fx','s_au'].forEach(id=>$(id).classList.remove('on'));
+  $('s_'+m).classList.add('on');
+  ['b_main','b_late'].forEach(id=>$(id).classList.remove('on'));
+  $('b_'+s).classList.add('on');
   $('lateCard').classList.toggle('hide', s!=='late');
   $('slwRow').classList.toggle('hide', s==='late');
   $('convRow').style.display = (m==='au')?'grid':'none';
@@ -321,6 +346,7 @@ function load(){
 ['cap','peak','risk','slw','conv'].forEach(id=>$(id).addEventListener('input',calc));
 ['sigP','slP','nowP'].forEach(id=>$(id).addEventListener('input',judgeLate));
 load(); setTab('fx','main');
+
 </script>
 <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}</script>
 </body>
