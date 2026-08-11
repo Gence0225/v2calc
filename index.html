@@ -56,60 +56,15 @@ summary{padding:11px 14px;font-family:var(--serif);font-size:13px;letter-spacing
 #shield{display:none;margin:8px 12px 12px;padding:8px;border-radius:8px;background:rgba(216,176,84,.07);border:1px solid var(--goldD);color:var(--gold);font-size:12px}
 footer{font-family:var(--serif);text-align:center;color:#4a4f68;font-size:10px;margin:18px 0 6px;letter-spacing:4px}
 .ph{margin-top:14px;text-align:center;color:#4a4f68;font-size:13px;padding:26px 0;border:1px dashed var(--line);border-radius:14px;font-family:var(--serif);letter-spacing:2px}
-</style></head><body>
-<h1>八咫鏡<span class="shiki">弐式</span></h1>
-<div class="subttl">貼れば、札が立つ ──── 見た通りにGMOへ写すだけ</div>
-
-<div class="tabs">
- <div class="tab on" id="tabMain" onclick="setSub('main')">定時乗車</div>
- <div class="tab" id="tabLate" onclick="setSub('late')">後乗り判定</div>
-</div>
-
-<textarea id="notice" placeholder="通知をここに貼る&#10;例: [v2X] USDJPY sell @ 157.365 / SL158.457/109p 【兜割り】"></textarea>
-<div class="now" id="nowBox"><label>現在値(後乗り)</label>
-<div style="display:flex;gap:8px;align-items:center">
-<input id="nowP" type="tel" inputmode="decimal" placeholder="158.44" style="flex:1">
-<button class="copy" id="rateBtn" onclick="fetchRate(true)" style="white-space:nowrap;padding:10px 12px">📡 取得</button>
-</div>
-<div id="rateInfo" style="font-size:11px;color:var(--dim);margin-top:4px"></div>
-</div>
-
-<div class="ph" id="ph">通知を貼ると、ここに発注札が立ちます</div>
-
-<div id="fuda">
- <div id="verdict"></div>
- <div class="head"><span><span class="sympill" id="symp">円</span><span class="sym" id="sym">USDJPY</span></span><span class="waza" id="waza"></span></div>
- <div class="side" id="side">売</div>
- <div class="row"><span class="k">数量</span>
-   <span><span class="v" id="qty">0.2<small id="qtyU">万</small></span><button class="copy" onclick="cp('qtyRaw')">コピー</button></span></div>
- <div class="band">✅ 決済同時発注(逆指値)を必ずON</div>
- <div class="row"><span class="k">逆指値レート</span>
-   <span><span class="v" id="slP2">—</span><button class="copy" onclick="cp('slRaw')">コピー</button></span></div>
- <div class="risk" id="riskLine"></div>
- <div class="bt"><input id="fill" type="tel" inputmode="decimal" placeholder="約定したら実約定価格を入力 → BT差">
-   <span class="r" id="btOut"></span></div>
- <div class="after">発注後: 台帳で直感 <b>◯ △ ✕</b> を押す</div>
-</div>
-
-<div id="slFuda">
- <div class="t">🛠 SL変更 ── GMOの決済逆指値をこの価格へ(決済同時発注✅のまま)</div>
- <div class="p" id="slNew">—</div>
- <div class="n" id="slNote"></div>
-</div>
-
-<details><summary>⚙ 資金と設定(端末に保存)</summary>
- <div class="grid">
-  <div class="cell"><label>資金(円)</label><input id="cap" type="tel" inputmode="numeric" value="210000"></div>
-  <div class="cell"><label>リスク(%)</label><input id="risk" type="tel" inputmode="decimal" value="1.0"></div>
-  <div class="cell"><label>過去最高資金(盾)</label><input id="peak" type="tel" inputmode="numeric" value="210000"></div>
-  <div class="cell"><label>金換算 1$=円</label><input id="conv" type="tel" inputmode="decimal" value="158"></div>
-  <div class="cell wide"><label>勾玉URL(レート中継用・例 https://xxx.workers.dev)</label><input id="wurl" type="url" value=""></div>
-  <div class="cell wide"><label>合言葉(key)</label><input id="wkey" type="text" value=""></div>
- </div>
- <div id="shield"></div>
-</details>
-
-<footer>陰 陽 寮 ── USDJPY=1000通貨切捨て / 金=0.1oz切捨て</footer>
+h1 .mark{color:var(--gold);font-size:20px;letter-spacing:0;text-indent:0;margin-right:2px}
+.tab.sym.on{border-color:var(--gold);color:var(--tx)}
+.tab.sub.on{border-color:#5a7fd6;color:var(--tx);box-shadow:0 0 0 1px rgba(90,127,214,.15) inset}
+.fetchrow{display:flex;gap:10px;align-items:center;margin-top:10px}
+.tsbtn{flex:0 0 auto;font-family:var(--serif);font-size:13px;letter-spacing:1px;color:var(--tx);background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer}
+.tsbtn:active{border-color:var(--gold)}
+#tsChip{font-size:12.5px;color:var(--ok)}
+.ans{font-family:var(--serif);font-size:15px;letter-spacing:8px;color:var(--dim);margin:16px 0 6px;border-bottom:1px solid var(--line);padding-bottom:6px}
+</style></head>
 
 <script>
 const $=id=>document.getElementById(id);
@@ -119,6 +74,7 @@ function save(){KEYS.forEach(k=>localStorage.setItem('jo2_'+k,$(k).value))}
 function load(){KEYS.forEach(k=>{const v=localStorage.getItem('jo2_'+k);if(v)$(k).value=v})}
 load(); KEYS.forEach(k=>$(k).addEventListener('input',()=>{save();render()}));
 
+function setMode(m){mode=m;$('tabFx').classList.toggle('on',m==='fx');$('tabAu').classList.toggle('on',m==='au');render()}
 function setSub(s){sub=s;$('tabMain').classList.toggle('on',s==='main');$('tabLate').classList.toggle('on',s==='late');
  $('nowBox').style.display=s==='late'?'block':'none';render()}
 $('nowP').addEventListener('input',render);
@@ -128,7 +84,7 @@ $('fill').addEventListener('input',btDiff);
 function parseNotice(t){
  cur={};$('slFuda').style.display='none';
  if(!t)return;
- mode=/XAU|GOLD|金/i.test(t)?'au':'fx';
+ setMode(/XAU|GOLD|金/i.test(t)?'au':'fx');
  if(/SL移動|新SL/.test(t)){showSLMove(t);return}
  const mSig=t.match(/@\s*([0-9]+\.?[0-9]*)/), mSL=t.match(/SL\s*([0-9]+\.?[0-9]*)/i);
  const mW=t.match(/【(.+?)】/), mTag=t.match(/\[(v2X|SLREV|v2|DIM)\]/i);
@@ -222,6 +178,28 @@ function btDiff(){
 
 function cp(name){const v=window[name];if(!v)return;navigator.clipboard&&navigator.clipboard.writeText(v)}
 
+
+// ── 勾玉から最新シグナルを取得(旧・序の自動取得の復活) ──
+async function fetchLatest(manual){
+ const wu=($('wurl').value||'').replace(/\/$/,''), wk=$('wkey').value||'';
+ if(!wu){if(manual)$('tsChip').textContent='⚙で勾玉URLと合言葉を設定してください';return}
+ try{
+  const q='?key='+encodeURIComponent(wk);
+  const r=await fetch(wu+'/latest'+q,{cache:'no-store'});
+  const j=await r.json();
+  if(j&&j.body){
+   $('notice').value=j.body; parseNotice(j.body); render();
+   $('tsChip').textContent='✅ '+(j.ts||'');
+  } else if(manual){$('tsChip').textContent='勾玉に未着(シグナルなし)'}
+  // SL移動の追撃札
+  try{
+   const r2=await fetch(wu+'/latest_sl'+q,{cache:'no-store'});
+   const j2=await r2.json();
+   if(j2&&j2.body&&/新SL/.test(j2.body)){showSLMove(j2.body);$('fuda').style.display=cur.sl!==undefined?'block':'none';$('ph').style.display='none';
+    $('tsChip').textContent+=' / 📍SL移動 '+(j2.ts||'')}
+  }catch(e){}
+ }catch(e){if(manual)$('tsChip').textContent='取得失敗 ── URLと合言葉を確認'}
+}
 // ── 現在値の参考取得(GMOコイン公開為替API・USDJPYのみ) ──
 let rateTimer=null;
 async function fetchRate(manual){
@@ -257,6 +235,7 @@ async function fetchRate(manual){
  render();
  if(!rateTimer)rateTimer=setInterval(()=>{if(sub==='late'&&mode==='fx')fetchRate(false);else{clearInterval(rateTimer);rateTimer=null}},5000);
 }
+if($('wurl').value)fetchLatest(false);
 if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js');
 </script>
 </body></html>
