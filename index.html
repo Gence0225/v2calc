@@ -5,70 +5,144 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0B0B12">
 <style>
-:root{--bg:#0e1123;--card:#151a30;--card2:#11152a;--line:#2b3050;--gold:#d8b054;--goldD:#8a7434;
---tx:#e9e7dc;--dim:#8b90a8;--buy:#ff6b7d;--sell:#57c7f5;--ok:#7fdc9a;--warn:#ffc46b;
---serif:"Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,sans-serif;padding:14px;max-width:520px;margin:0 auto}
-h1{font-family:var(--serif);font-size:26px;letter-spacing:14px;text-indent:8px;text-align:center;margin:8px 0 2px;font-weight:600;color:var(--tx)}
-h1 .shiki{font-size:12px;letter-spacing:4px;text-indent:0;color:var(--gold);border:1px solid var(--goldD);border-radius:6px;padding:2px 8px;margin-left:6px;vertical-align:middle}
-.subttl{font-family:var(--serif);font-size:11.5px;letter-spacing:2px;color:var(--dim);text-align:center;margin-bottom:14px}
-.tabs{display:flex;gap:10px;margin-bottom:12px}
-.tab{flex:1;padding:11px 0;text-align:center;border:1px solid var(--line);border-radius:12px;background:var(--card2);color:var(--dim);font-family:var(--serif);font-size:15px;letter-spacing:3px;cursor:pointer}
-.tab.on{color:var(--tx);border-color:var(--gold);background:#1a1f3a;font-weight:700;box-shadow:0 0 0 1px rgba(216,176,84,.15) inset}
-textarea{width:100%;background:var(--card2);border:1px dashed var(--line);border-radius:12px;color:var(--tx);padding:12px;font-size:13px;min-height:58px;font-family:ui-monospace,monospace}
-textarea:focus{outline:none;border-color:var(--goldD)}
-.now{display:none;margin-top:10px}
-.now label{font-family:var(--serif);font-size:12px;letter-spacing:2px;color:var(--dim)}
-.now input{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:10px;color:var(--tx);padding:10px;font-size:18px;margin-top:4px}
-#fuda{display:none;margin-top:14px;background:var(--card);border:1px solid var(--gold);border-radius:16px;overflow:hidden;box-shadow:0 0 24px rgba(216,176,84,.06)}
-#verdict{display:none;padding:11px 14px;font-size:14px;font-weight:700;border-bottom:1px solid var(--line)}
-.head{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-bottom:1px solid var(--line)}
-.sympill{font-family:var(--serif);font-size:12px;color:var(--gold);border:1px solid var(--goldD);border-radius:6px;padding:2px 8px;margin-right:8px}
-.sym{font-family:var(--serif);font-size:17px;font-weight:700;letter-spacing:2px}
-.waza{font-family:var(--serif);font-size:12px;color:var(--dim);letter-spacing:1px}
-.side{margin:12px 14px 6px;border-radius:14px;text-align:center;padding:15px 0;font-family:var(--serif);font-size:36px;font-weight:800;letter-spacing:18px;text-indent:18px}
-.side.buy{background:rgba(255,107,125,.12);color:var(--buy);border:1px solid rgba(255,107,125,.5)}
-.side.sell{background:rgba(87,199,245,.10);color:var(--sell);border:1px solid rgba(87,199,245,.5)}
-.row{display:flex;justify-content:space-between;align-items:center;padding:11px 14px}
-.row .k{font-family:var(--serif);font-size:13px;letter-spacing:2px;color:var(--dim)}
-.row .v{font-size:31px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--gold)}
-.row .v small{font-size:13px;color:var(--dim);font-weight:400;margin-left:4px}
-.copy{font-size:12px;color:var(--gold);border:1px solid var(--goldD);border-radius:9px;padding:6px 12px;margin-left:10px;background:none;cursor:pointer;font-family:var(--serif);letter-spacing:1px}
-.copy:active{background:#26264a}
-.band{margin:4px 14px;padding:9px 10px;border-radius:10px;background:rgba(255,196,107,.08);border:1px solid rgba(255,196,107,.45);color:var(--warn);font-size:14px;font-weight:700;text-align:center;font-family:var(--serif);letter-spacing:1px}
-.risk{padding:9px 14px 4px;font-size:12px;color:var(--dim);border-top:1px solid var(--line)}
-.after{padding:6px 14px 12px;font-size:12px;color:var(--dim);font-family:var(--serif);letter-spacing:1px}
-.after b{color:var(--gold)}
-#slFuda{display:none;margin-top:14px;background:var(--card);border:1px solid rgba(127,220,154,.5);border-radius:16px;padding:13px 14px}
-#slFuda .t{font-size:13px;color:var(--dim);font-family:var(--serif)}
-#slFuda .p{font-size:34px;font-weight:900;margin:4px 0;color:var(--gold)}
-#slFuda .n{font-size:12px;color:var(--dim)}
-.bt{display:flex;gap:8px;align-items:center;padding:0 14px 12px}
-.bt input{flex:1;background:var(--card2);border:1px solid var(--line);border-radius:8px;color:var(--tx);padding:8px;font-size:15px}
-.bt .r{font-size:13px;color:var(--dim);min-width:96px;text-align:right}
-details{margin-top:16px;border:1px solid var(--line);border-radius:14px;background:var(--card2)}
-summary{padding:11px 14px;font-family:var(--serif);font-size:13px;letter-spacing:2px;color:var(--dim);cursor:pointer}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 12px 12px}
-.cell label{font-size:11px;color:var(--dim)}
-.cell input{width:100%;background:#0d1020;border:1px solid var(--line);border-radius:8px;color:var(--tx);padding:8px;font-size:15px;margin-top:2px}
+:root{--ink:#0B0B12;--panel:#14141F;--txt:#E8E6F0;--dim:#8A889C;--faint:#5E5C70;
+--g1:#E8C877;--g2:#B8862E;--take:#5FCF9A;--sora:#6FAEDC;--shu:#E0796B;--line:rgba(255,255,255,.08)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0 auto;color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;
+font-size:14px;background:var(--ink);min-height:100vh;padding:16px 13px 60px;max-width:720px}
+.mincho{font-family:"Shippori Mincho","Yu Mincho",serif}
+.mono{font-family:ui-monospace,"SF Mono","Roboto Mono",Menlo,monospace}
+.goldtext{background:linear-gradient(135deg,var(--g1) 25%,var(--g2) 95%);-webkit-background-clip:text;background-clip:text;color:transparent}
+header{display:flex;align-items:center;gap:9px;margin-bottom:2px}
+.hicon{width:24px;height:24px;border-radius:6px;border:1px solid rgba(232,200,119,.5);color:var(--g1);
+display:flex;align-items:center;justify-content:center;font-size:13px}
+h1{font-size:21px;margin:0;letter-spacing:.05em}
+h1 .shiki{font-size:11px;letter-spacing:.2em;color:var(--g1);border:1px solid rgba(232,200,119,.4);border-radius:5px;padding:1px 7px;margin-left:7px;vertical-align:2px;-webkit-text-fill-color:var(--g1)}
+.subttl{color:var(--faint);font-size:10.5px;margin:0 0 12px 33px}
+.symtabs{display:flex;gap:7px;margin:0 0 8px}
+.symtab{flex:1;background:var(--panel);color:var(--dim);border:1px solid var(--line);border-radius:10px;
+padding:9px 4px;font-size:12.5px;font-weight:600;text-align:center;cursor:pointer}
+.symtab.on{background:#1E1A2C;border-color:rgba(232,200,119,.5);color:var(--g1)}
+textarea{width:100%;background:var(--panel);border:1px dashed var(--line);border-radius:12px;color:var(--txt);
+padding:11px;font-size:12.5px;min-height:54px;font-family:ui-monospace,monospace;margin-top:8px}
+textarea:focus{outline:none;border-color:rgba(232,200,119,.4)}
+.fetchrow{display:flex;gap:10px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.tsbtn{background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:10px;
+padding:9px 13px;font-size:12.5px;font-weight:600;cursor:pointer}
+.tsbtn:active{border-color:rgba(232,200,119,.5);color:var(--g1)}
+#tsChip{font-size:11.5px;color:var(--take)}
+.now{display:none;margin-top:8px}
+.now label{font-size:10.5px;color:var(--faint)}
+.now input{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:10px;color:var(--txt);padding:10px;font-size:17px;margin-top:3px}
+.sec{display:flex;align-items:center;gap:10px;margin:18px 0 9px}
+.sec h2{font-size:11.5px;margin:0;letter-spacing:.3em;font-weight:600;color:var(--g1)}
+.sec .rule{flex:1;height:1px;background:var(--line)}
+.ph{text-align:center;color:var(--faint);font-size:12.5px;letter-spacing:.14em;padding:22px 0;
+background:var(--panel);border:1px solid var(--line);border-radius:13px}
+#fuda{display:none;background:var(--panel);border:1px solid rgba(232,200,119,.35);border-radius:13px;overflow:hidden}
+#verdict{display:none;padding:10px 15px;font-size:13px;font-weight:700;border-bottom:1px solid var(--line)}
+.head{display:flex;align-items:center;gap:8px;padding:12px 15px 0;flex-wrap:wrap}
+.sympill{font-size:10.5px;border-radius:5px;padding:1px 7px;font-weight:700;color:var(--g1);border:1px solid rgba(232,200,119,.4)}
+.sym{font-size:16px;font-weight:700;letter-spacing:.06em}
+.waza{margin-left:auto;font-size:12px;color:var(--dim)}
+.side{margin:11px 15px 4px;border-radius:11px;text-align:center;padding:12px 0;font-size:31px;font-weight:800;letter-spacing:.5em;text-indent:.5em}
+.side.buy{color:var(--take);border:1px solid rgba(95,207,154,.4);background:rgba(95,207,154,.06)}
+.side.sell{color:var(--sora);border:1px solid rgba(111,174,220,.4);background:rgba(111,174,220,.06)}
+.row{display:flex;justify-content:space-between;align-items:center;padding:10px 15px}
+.row .k{font-size:10.5px;color:var(--faint);letter-spacing:.14em}
+.row .v{font-size:29px;font-weight:700;letter-spacing:-.01em}
+.row .v small{font-size:12px;color:var(--dim);font-weight:400;margin-left:4px;-webkit-text-fill-color:var(--dim)}
+.copy{font-size:11.5px;color:var(--g1);border:1px solid rgba(232,200,119,.4);border-radius:8px;padding:6px 12px;margin-left:10px;background:none;cursor:pointer;font-weight:600}
+.copy:active{background:#1E1A2C}
+.band{margin:3px 15px;padding:8px 10px;border-radius:9px;background:rgba(224,121,107,.08);
+border:1px solid rgba(224,121,107,.4);color:var(--shu);font-size:13px;font-weight:700;text-align:center}
+.risk{padding:9px 15px 3px;font-size:11px;color:var(--dim);border-top:1px solid var(--line)}
+.bt{display:flex;gap:8px;align-items:center;padding:2px 15px 10px}
+.bt input{flex:1;background:var(--ink);border:1px solid var(--line);border-radius:8px;color:var(--txt);padding:8px;font-size:14px}
+.bt .r{font-size:12px;color:var(--dim);min-width:92px;text-align:right}
+.after{padding:4px 15px 13px;font-size:11px;color:var(--faint)}
+.after b{color:var(--g1)}
+#slFuda{display:none;background:var(--panel);border:1px solid rgba(95,207,154,.4);border-radius:13px;padding:12px 15px;margin-top:9px}
+#slFuda .t{font-size:11.5px;color:var(--dim)}
+#slFuda .p{font-size:31px;font-weight:800;margin:3px 0}
+#slFuda .n{font-size:11px;color:var(--faint)}
+details{margin-top:16px;background:var(--panel);border:1px solid var(--line);border-radius:13px}
+summary{padding:11px 15px;font-size:12px;letter-spacing:.1em;color:var(--dim);cursor:pointer}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:0 13px 13px}
+.cell label{font-size:10px;color:var(--faint)}
+.cell input{width:100%;background:var(--ink);border:1px solid var(--line);border-radius:8px;color:var(--txt);padding:8px;font-size:14px;margin-top:2px}
 .cell.wide{grid-column:1/3}
-#shield{display:none;margin:8px 12px 12px;padding:8px;border-radius:8px;background:rgba(216,176,84,.07);border:1px solid var(--goldD);color:var(--gold);font-size:12px}
-footer{font-family:var(--serif);text-align:center;color:#4a4f68;font-size:10px;margin:18px 0 6px;letter-spacing:4px}
-.ph{margin-top:14px;text-align:center;color:#4a4f68;font-size:13px;padding:26px 0;border:1px dashed var(--line);border-radius:14px;font-family:var(--serif);letter-spacing:2px}
-h1 .mark{color:var(--gold);font-size:20px;letter-spacing:0;text-indent:0;margin-right:2px}
-.tab.sym.on{border-color:var(--gold);color:var(--tx)}
-.tab.sub.on{border-color:#5a7fd6;color:var(--tx);box-shadow:0 0 0 1px rgba(90,127,214,.15) inset}
-.fetchrow{display:flex;gap:10px;align-items:center;margin-top:10px}
-.tsbtn{flex:0 0 auto;font-family:var(--serif);font-size:13px;letter-spacing:1px;color:var(--tx);background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer}
-.tsbtn:active{border-color:var(--gold)}
-#tsChip{font-size:12.5px;color:var(--ok)}
-.ans{font-family:var(--serif);font-size:15px;letter-spacing:8px;color:var(--dim);margin:16px 0 6px;border-bottom:1px solid var(--line);padding-bottom:6px}
-</style></head>
+#shield{display:none;margin:0 13px 13px;padding:8px;border-radius:8px;background:rgba(232,200,119,.06);border:1px solid rgba(232,200,119,.35);color:var(--g1);font-size:11.5px}
+footer{text-align:center;color:var(--faint);font-size:9.5px;margin-top:22px;letter-spacing:.3em}
+</style></head><body>
+
+<header><div class="hicon mincho">鏡</div><h1 class="mincho goldtext">八咫鏡<span class="shiki">弐式</span></h1></header>
+<div class="subttl">真のリスクを映す ── 資金 × risk% ÷ SL幅</div>
+
+<div class="symtabs">
+ <div class="symtab on" id="tabFx" onclick="setMode('fx')">円 USDJPY</div>
+ <div class="symtab" id="tabAu" onclick="setMode('au')">金 XAUUSD</div>
+</div>
+<div class="symtabs">
+ <div class="symtab on" id="tabMain" onclick="setSub('main')">定時乗車</div>
+ <div class="symtab" id="tabLate" onclick="setSub('late')">後乗り判定</div>
+</div>
+
+<textarea id="notice" placeholder="通知をここに貼る(勾玉接続済みなら下の取得で自動)&#10;例: [v2X] USDJPY sell @ 157.365 / SL158.457/109p 【兜割り】"></textarea>
+<div class="fetchrow">
+ <button class="tsbtn" id="tsBtn" onclick="fetchLatest(true)">🔄 勾玉から最新を取得</button>
+ <span id="tsChip"></span>
+</div>
+
+<div class="now" id="nowBox"><label>現在値(後乗り)</label>
+<div style="display:flex;gap:8px;align-items:center">
+<input id="nowP" type="tel" inputmode="decimal" placeholder="158.44" style="flex:1">
+<button class="copy" id="rateBtn" onclick="fetchRate(true)" style="white-space:nowrap;padding:10px 12px">📡 取得</button>
+</div>
+<div id="rateInfo" style="font-size:10.5px;color:var(--faint);margin-top:4px"></div>
+</div>
+
+<div class="sec"><h2>答</h2><div class="rule"></div></div>
+<div class="ph" id="ph">通知が入ると、ここに発注札が立ちます</div>
+
+<div id="fuda">
+ <div id="verdict"></div>
+ <div class="head"><span class="sympill" id="symp">円</span><span class="sym" id="sym">USDJPY</span><span class="waza" id="waza"></span></div>
+ <div class="side" id="side">売</div>
+ <div class="row"><span class="k">数量</span>
+   <span><span class="v goldtext" id="qty">0.2<small id="qtyU">万</small></span><button class="copy" onclick="cp('qtyRaw')">コピー</button></span></div>
+ <div class="band">✅ 決済同時発注(逆指値)を必ずON</div>
+ <div class="row"><span class="k">逆指値レート</span>
+   <span><span class="v mono" id="slP2">—</span><button class="copy" onclick="cp('slRaw')">コピー</button></span></div>
+ <div class="risk" id="riskLine"></div>
+ <div class="bt"><input id="fill" type="tel" inputmode="decimal" placeholder="約定したら実約定価格を入力 → BT差">
+   <span class="r" id="btOut"></span></div>
+ <div class="after">発注後: 台帳で直感 <b>◯ △ ✕</b> を押す</div>
+</div>
+
+<div id="slFuda">
+ <div class="t">🛠 SL変更 ── GMOの決済逆指値をこの価格へ(決済同時発注✅のまま)</div>
+ <div class="p mono" id="slNew">—</div>
+ <div class="n" id="slNote"></div>
+</div>
+
+<details><summary>⚙ 接続と資金の設定(初回のみ・端末に保存)</summary>
+ <div class="grid">
+  <div class="cell wide"><label>勾玉URL(例 https://xxx.workers.dev)</label><input id="wurl" type="url" value=""></div>
+  <div class="cell wide"><label>合言葉(key)</label><input id="wkey" type="text" value=""></div>
+  <div class="cell"><label>資金(円)</label><input id="cap" type="tel" inputmode="numeric" value="210000"></div>
+  <div class="cell"><label>リスク(%)</label><input id="risk" type="tel" inputmode="decimal" value="1.0"></div>
+  <div class="cell"><label>過去最高資金(盾)</label><input id="peak" type="tel" inputmode="numeric" value="210000"></div>
+  <div class="cell"><label>金換算 1$=円</label><input id="conv" type="tel" inputmode="decimal" value="158"></div>
+ </div>
+ <div id="shield"></div>
+</details>
+
+<footer class="mincho">陰 陽 寮 ── USDJPY=1000通貨切捨て / 金=0.1oz切捨て</footer>
 
 <script>
 const $=id=>document.getElementById(id);
-let mode='fx', sub='main', cur={};   // cur: {sig,sl,side,waza,tag}
+let mode='fx', sub='main', cur={};
 const KEYS=['cap','risk','peak','conv','wurl','wkey'];
 function save(){KEYS.forEach(k=>localStorage.setItem('jo2_'+k,$(k).value))}
 function load(){KEYS.forEach(k=>{const v=localStorage.getItem('jo2_'+k);if(v)$(k).value=v})}
@@ -98,9 +172,9 @@ function showSLMove(t){
  const mNew=t.match(/新SL\s*([0-9.]+)/),mPrev=t.match(/前\s*([0-9.]+)/),mBE=t.match(/建値差([+\-][0-9.]+p)/);
  const win=/建値差\+/.test(t);
  $('slNew').textContent=mNew?mNew[1]:'—';
- $('slNew').style.color=win?'#7fdc9a':'var(--tx)';
+ $('slNew').style.color=win?'var(--take)':'var(--txt)';
  $('slNote').innerHTML=(win?'🔒 建値超え(もう負けない) ':'')+(mPrev?'前 '+mPrev[1]+' / ':'')+(mBE?'建値差 '+mBE[1]:'');
- $('slFuda').style.display='block';$('fuda').style.display='none';$('ph').style.display='none';
+ $('slFuda').style.display='block';
 }
 
 function shieldRisk(){
@@ -125,14 +199,14 @@ function render(){
    const D=(now-sig)*dir/Math.abs(sig-sl);
    const dead=dir===1?now<=sl:now>=sl;
    v.style.display='block';
-   if(dead){v.style.color='#ff8fa3';v.style.background='rgba(255,23,68,.10)';
+   if(dead){v.style.color='var(--shu)';v.style.background='rgba(224,121,107,.07)';
     vHTML='☠ シグナル死亡(SL割れ) ── 入らない。次を待つ';ok=false}
-   else if(D<=0.5){v.style.color='var(--ok)';v.style.background='rgba(0,230,118,.08)';
+   else if(D<=0.5){v.style.color='var(--take)';v.style.background='rgba(95,207,154,.06)';
     vHTML='✅ 乗ってよし ── '+(D<=0?'有利圏':'SL幅の'+(D*100).toFixed(0)+'%地点')+'(SLは据え置き)';entryBase=now}
-   else{v.style.color='var(--qty)';v.style.background='rgba(255,213,79,.08)';
+   else{v.style.color='var(--g1)';v.style.background='rgba(232,200,119,.05)';
     vHTML='⏸ 見送り ── SL幅の'+(D*100).toFixed(0)+'%進行済み。ルール⑤: 次の再ブレイクで';ok=false}
    v.textContent='';v.innerHTML=vHTML;
-  } else {v.style.display='block';v.style.background='none';v.style.color='var(--dim)';v.innerHTML='現在値を入れると軍配が上がります';ok=false}
+  } else {v.style.display='block';v.style.background='none';v.style.color='var(--faint)';v.innerHTML='現在値を入れると軍配が上がります';ok=false}
  } else v.style.display='none';
 
  $('sym').textContent=mode==='fx'?'USDJPY':'金スポット(CFD)';$('symp').textContent=mode==='fx'?'円':'金';
@@ -178,8 +252,7 @@ function btDiff(){
 
 function cp(name){const v=window[name];if(!v)return;navigator.clipboard&&navigator.clipboard.writeText(v)}
 
-
-// ── 勾玉から最新シグナルを取得(旧・序の自動取得の復活) ──
+// ── 勾玉から最新シグナルを取得 ──
 async function fetchLatest(manual){
  const wu=($('wurl').value||'').replace(/\/$/,''), wk=$('wkey').value||'';
  if(!wu){if(manual)$('tsChip').textContent='⚙で勾玉URLと合言葉を設定してください';return}
@@ -191,21 +264,20 @@ async function fetchLatest(manual){
    $('notice').value=j.body; parseNotice(j.body); render();
    $('tsChip').textContent='✅ '+(j.ts||'');
   } else if(manual){$('tsChip').textContent='勾玉に未着(シグナルなし)'}
-  // SL移動の追撃札
   try{
    const r2=await fetch(wu+'/latest_sl'+q,{cache:'no-store'});
    const j2=await r2.json();
-   if(j2&&j2.body&&/新SL/.test(j2.body)){showSLMove(j2.body);$('fuda').style.display=cur.sl!==undefined?'block':'none';$('ph').style.display='none';
+   if(j2&&j2.body&&/新SL/.test(j2.body)){showSLMove(j2.body);
     $('tsChip').textContent+=' / 📍SL移動 '+(j2.ts||'')}
   }catch(e){}
  }catch(e){if(manual)$('tsChip').textContent='取得失敗 ── URLと合言葉を確認'}
 }
-// ── 現在値の参考取得(GMOコイン公開為替API・USDJPYのみ) ──
+
+// ── 現在値の参考取得(勾玉中継→直接→手動の三段構え) ──
 let rateTimer=null;
 async function fetchRate(manual){
  if(mode!=='fx'){$('rateInfo').textContent='金は参考API未対応 ── 手動入力で';return}
  let src=null,u=null;
- // 1) 勾玉中継(CORS対応・推奨)
  const wu=($('wurl').value||'').replace(/\/$/,''), wk=$('wkey').value||'';
  if(wu){
   try{
@@ -214,7 +286,6 @@ async function fetchRate(manual){
    if(j&&j.ask){u=j;src='勾玉中継'}
   }catch(e){}
  }
- // 2) 直接(CORS次第)
  if(!u){
   try{
    const r=await fetch('https://forex-api.coin.z.com/public/v1/ticker',{cache:'no-store'});
@@ -235,6 +306,7 @@ async function fetchRate(manual){
  render();
  if(!rateTimer)rateTimer=setInterval(()=>{if(sub==='late'&&mode==='fx')fetchRate(false);else{clearInterval(rateTimer);rateTimer=null}},5000);
 }
+
 if($('wurl').value)fetchLatest(false);
 if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js');
 </script>
