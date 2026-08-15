@@ -122,6 +122,8 @@ footer{text-align:center;color:var(--faint);font-size:9.5px;margin-top:22px;lett
  <div class="band">✅ 決済同時発注(逆指値)を必ずON</div>
  <div class="row"><span class="k">逆指値レート</span>
    <span><span class="v mono" id="slP2">—</span><button class="copy" onclick="cp('slRaw')">コピー</button></span></div>
+ <div class="row" id="pipsRow" style="display:none"><span class="k">逆指値幅(スピード注文用)</span>
+   <span><span class="v mono" id="slPips">—</span><button class="copy" onclick="cp('pipsRaw')">コピー</button></span></div>
  <div class="risk" id="riskLine"></div>
  <div class="bt"><input id="fill" type="tel" inputmode="decimal" placeholder="約定したら実約定価格を入力 → BT差">
    <span class="r" id="btOut"></span></div>
@@ -222,6 +224,7 @@ function render(){
  const s=$('side');s.textContent=dir===1?'買':'売';s.className='side '+(dir===1?'buy':'sell');
  $('slP2').textContent=sl;
  window.slRaw=String(sl);
+ $('pipsRow').style.display='none';window.pipsRaw='';
 
  const w=Math.abs(entryBase-sl);
  if(!ok||w<=0){$('qty').innerHTML='—<small></small>';$('riskLine').textContent='';window.qtyRaw='';return}
@@ -245,7 +248,11 @@ function render(){
   }
   $('qty').innerHTML=oz.toFixed(1)+'<small>oz</small>';
   window.qtyRaw=oz.toFixed(1);
-  $('riskLine').textContent='SL幅$'+w.toFixed(2)+' / 想定リスク約'+Math.round(oz*w*conv).toLocaleString()+'円(資金の'+(oz*w*conv/cap*100).toFixed(2)+'%)';
+  const pips=w*10;
+  $('slPips').innerHTML=Math.round(pips)+'<small>p(1p=0.1$)</small>';
+  window.pipsRaw=String(Math.round(pips));
+  $('pipsRow').style.display='flex';
+  $('riskLine').textContent='SL幅$'+w.toFixed(2)+'(='+pips.toFixed(1)+'p) / 想定リスク約'+Math.round(oz*w*conv).toLocaleString()+'円(資金の'+(oz*w*conv/cap*100).toFixed(2)+'%)';
  }
 }
 
