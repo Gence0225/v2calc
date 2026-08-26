@@ -238,7 +238,11 @@ function render(){
   const man=q/10000;
   $('qty').innerHTML=man.toFixed(1)+'<small>万('+q.toLocaleString()+'通貨)</small>';
   window.qtyRaw=man.toFixed(1);
-  $('riskLine').textContent='SL幅'+(w/0.01).toFixed(0)+'銭 / 想定リスク約'+Math.round(q*w).toLocaleString()+'円(資金の'+(q*w/cap*100).toFixed(2)+'%)';
+  const pips=w/0.01;
+  $('slPips').innerHTML=Math.round(pips)+'<small>p(1p=1銭)</small>';
+  window.pipsRaw=String(Math.round(pips));
+  $('pipsRow').style.display='flex';
+  $('riskLine').textContent='SL幅'+(w/0.01).toFixed(0)+'銭(='+pips.toFixed(1)+'p) / 想定リスク約'+Math.round(q*w).toLocaleString()+'円(資金の'+(q*w/cap*100).toFixed(2)+'%)';
  }else{
   const oz=Math.floor(riskJPY/(w*conv)*10)/10;
   if(oz<=0){

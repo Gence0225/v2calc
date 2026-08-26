@@ -1,4 +1,4 @@
-const C='yatakagami-jo7';
+const C='yatakagami-jo8';
 self.addEventListener('install',e=>self.skipWaiting());
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.map(k=>k!==C&&caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',e=>{
