@@ -136,13 +136,13 @@ footer{text-align:center;color:var(--faint);font-size:9.5px;margin-top:22px;lett
  <div class="n" id="slNote"></div>
 </div>
 
-<details><summary>⚙ 接続と資金の設定(初回のみ・端末に保存)</summary>
+<details><summary>⚙ 接続と資金の設定(端末に保存・資金は毎回確認)</summary>
  <div class="grid">
   <div class="cell wide"><label>勾玉URL(例 https://xxx.workers.dev)</label><input id="wurl" type="url" value=""></div>
   <div class="cell wide"><label>合言葉(key)</label><input id="wkey" type="text" value=""></div>
-  <div class="cell"><label>資金(円)</label><input id="cap" type="tel" inputmode="numeric" value="210000"></div>
+  <div class="cell"><label>資金(円)・必須</label><input id="cap" type="tel" inputmode="numeric" value="" placeholder="例 100000"></div>
   <div class="cell"><label>リスク(%)</label><input id="risk" type="tel" inputmode="decimal" value="1.0"></div>
-  <div class="cell"><label>過去最高資金(盾)</label><input id="peak" type="tel" inputmode="numeric" value="210000"></div>
+  <div class="cell"><label>過去最高資金(盾・自動更新)</label><input id="peak" type="tel" inputmode="numeric" value="" placeholder="空欄=資金と同じ"></div>
   <div class="cell"><label>金換算 1$=円</label><input id="conv" type="tel" inputmode="decimal" value="158"></div>
  </div>
  <div id="shield"></div>
@@ -151,84 +151,116 @@ footer{text-align:center;color:var(--faint);font-size:9.5px;margin-top:22px;lett
 <footer class="mincho">陰 陽 寮 ── USDJPY=1000通貨切捨て / 金=0.1oz切捨て</footer>
 
 <script>
+// 八咫鏡・弐式 改(2026-10-31・裁定4): 資金は必須・過去最高は自動更新・DD12%新規停止/15%全停止・燕返しは寄り後の実レートで・
+//   リスク1%超は計算しない・SL幅2銭未満は計算しない・古い通知/レートの警告・SL移動札の照合・本鈴[W]書式
 const $=id=>document.getElementById(id);
-let mode='fx', sub='main', cur={};
+let mode='fx', sub='main', cur={}, rateAt=0, slInfo=null;
 const KEYS=['cap','risk','peak','conv','wurl','wkey'];
-function save(){KEYS.forEach(k=>localStorage.setItem('jo2_'+k,$(k).value))}
-function load(){KEYS.forEach(k=>{const v=localStorage.getItem('jo2_'+k);if(v)$(k).value=v})}
+// 端末の保存領域が使えない環境(プライベートモード等)でも計算は動かす
+const LS={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
+function save(){KEYS.forEach(k=>LS.set('jo2_'+k,$(k).value))}
+function load(){KEYS.forEach(k=>{const v=LS.get('jo2_'+k);if(v)$(k).value=v})}
 load(); KEYS.forEach(k=>$(k).addEventListener('input',()=>{save();render()}));
+// 数字欄の読み取り: 全角・カンマ・空白を許す。読めなければNaN(空欄は'')
+function num(v){const t=String(v??'').replace(/[０-９．]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/[,，\s]/g,'');
+ if(t==='')return '';return /^\d+(\.\d+)?$/.test(t)?parseFloat(t):NaN}
 
 function setMode(m){mode=m;$('tabFx').classList.toggle('on',m==='fx');$('tabAu').classList.toggle('on',m==='au');render()}
-function setSub(s){sub=s;$('tabMain').classList.toggle('on',s==='main');$('tabLate').classList.toggle('on',s==='late');
- $('nowBox').style.display=s==='late'?'block':'none';render()}
-$('nowP').addEventListener('input',render);
+function setSub(s){sub=s;$('tabMain').classList.toggle('on',s==='main');$('tabLate').classList.toggle('on',s==='late');render()}
+$('nowP').addEventListener('input',()=>{rateAt=0;render()});
 $('notice').addEventListener('input',()=>{parseNotice($('notice').value);render()});
 $('fill').addEventListener('input',btDiff);
 
-function parseNotice(t){
- cur={};$('slFuda').style.display='none';
+function parseNotice(t,ts){
+ cur={};$('slFuda').style.display='none';slInfo=null;
  if(!t)return;
  setMode(/XAU|GOLD|金/i.test(t)?'au':'fx');
  if(/SL移動|新SL/.test(t)){showSLMove(t);return}
+ if(/^\s*\[(記録|手仕舞い)\]/.test(t))return;                 // 記録・決済は発注札にしない
  const mSig=t.match(/@\s*([0-9]+\.?[0-9]*)/), mSL=t.match(/SL\s*([0-9]+\.?[0-9]*)/i);
  const mW=t.match(/【(.+?)】/), mTag=t.match(/\[(v2X|SLREV|v2|DIM)\]/i);
  if(!(mSig&&mSL))return;
  cur.sig=parseFloat(mSig[1]);cur.sl=parseFloat(mSL[1]);
  cur.side=/buy|買/i.test(t)?1:(/sell|売/i.test(t)?-1:(cur.sl<cur.sig?1:-1));
- cur.waza=mW?mW[1]:'';cur.tag=mTag?mTag[1]:'';
+ cur.waza=mW?mW[1]:'';cur.tag=mTag?mTag[1]:'';cur.w=/\[W\]/.test(t);cur.ts=ts||null;
 }
+const isRev=()=>/^SLREV$/i.test(cur.tag||'');
 
-function showSLMove(t){
+function showSLMove(t,warn){
  const mNew=t.match(/新SL\s*([0-9.]+)/),mPrev=t.match(/前\s*([0-9.]+)/),mBE=t.match(/建値差([+\-][0-9.]+p)/);
  const win=/建値差\+/.test(t);
  $('slNew').textContent=mNew?mNew[1]:'—';
  $('slNew').style.color=win?'var(--take)':'var(--txt)';
- $('slNote').innerHTML=(win?'🔒 建値超え(もう負けない) ':'')+(mPrev?'前 '+mPrev[1]+' / ':'')+(mBE?'建値差 '+mBE[1]:'');
+ $('slNote').innerHTML=(warn?'⚠ '+warn+'<br>':'')+(win?'🔒 建値超え(もう負けない) ':'')+(mPrev?'前 '+mPrev[1]+' / ':'')+(mBE?'建値差 '+mBE[1]:'');
  $('slFuda').style.display='block';
 }
 
-function shieldRisk(){
- const cap=+$('cap').value||0,peak=Math.max(+$('peak').value||0,cap);
- let r=+$('risk').value||1;const dd=peak>0?(peak-cap)/peak:0;
- if(dd>=0.08){r=r/2;$('shield').style.display='block';
-  $('shield').innerHTML='🛡 盾発動中: 過去最高から'+(dd*100).toFixed(1)+'%下 → リスクを半減して計算('+r.toFixed(2)+'%)';}
- else $('shield').style.display='none';
- return r;
+// 資金・盾・安全停止。ok=false なら数量を出さない
+function riskState(){
+ const cap=num($('cap').value), pk=num($('peak').value), r=num($('risk').value);
+ if(!(cap>0))return{ok:false,msg:'⚙ 資金(円)を入れてください ── 空欄・読めない値では計算しない'};
+ if(Number.isNaN(pk))return{ok:false,msg:'⚙ 過去最高資金が読めない ── 数字で入れ直すか空欄に(盾が効かなくなるため計算しない)'};
+ if(!(r>0))return{ok:false,msg:'⚙ リスク(%)を入れてください'};
+ if(r>1)return{ok:false,msg:'⚠ リスク'+r+'% ── 掟は1%以下。1%を超える値では計算しない'};
+ let P=pk===''?cap:Math.max(pk,cap);
+ if(P!==pk){$('peak').value=String(P);LS.set('jo2_peak',String(P))}   // 過去最高の自動更新・保存
+ const dd=(P-cap)/P;
+ if(dd>=0.15)return{ok:false,stop:2,dd,msg:'⛔ 全停止 ── 過去最高から'+(dd*100).toFixed(1)+'%下(15%以上)。新規なし・建玉も決済'};
+ if(dd>=0.12)return{ok:false,stop:1,dd,msg:'⛔ 新規停止 ── 過去最高から'+(dd*100).toFixed(1)+'%下(12%以上)。新規は出さない'};
+ return{ok:true,cap,P,dd,r:dd>=0.08?r/2:r,half:dd>=0.08};
 }
+function shieldRisk(){
+ const s=riskState();
+ if(s.ok&&s.half){$('shield').style.display='block';$('shield').innerHTML='🛡 盾発動中: 過去最高から'+(s.dd*100).toFixed(1)+'%下 → リスクを半減して計算('+s.r.toFixed(2)+'%)'}
+ else if(!s.ok){$('shield').style.display='block';$('shield').innerHTML=s.msg}
+ else $('shield').style.display='none';
+ return s.ok?s.r:0;
+}
+const ageMin=ts=>{if(!ts)return null;const d=new Date(String(ts).replace(' JST','+09:00').replace(' ','T'));return isNaN(d)?null:(Date.now()-d.getTime())/60000};
 
 function render(){
+ $('nowBox').style.display=(sub==='late'||isRev())?'block':'none';
  if(cur.sl===undefined){$('fuda').style.display='none';$('ph').style.display=$('slFuda').style.display==='block'?'none':'block';return}
  $('ph').style.display='none';$('fuda').style.display='block';
- const cap=+$('cap').value||0, conv=+$('conv').value||158, r=shieldRisk(), riskJPY=cap*r/100;
+ const conv=+$('conv').value||158, st=riskState(), r=shieldRisk();
  const dir=cur.side, sig=cur.sig, sl=cur.sl;
- let entryBase=sig, ok=true, vHTML='';
- const v=$('verdict');
- if(sub==='late'){
-  const now=parseFloat($('nowP').value);
-  if(now){
-   const D=(now-sig)*dir/Math.abs(sig-sl);
-   const dead=dir===1?now<=sl:now>=sl;
-   v.style.display='block';
-   if(dead){v.style.color='var(--shu)';v.style.background='rgba(224,121,107,.07)';
-    vHTML='☠ シグナル死亡(SL割れ) ── 入らない。次を待つ';ok=false}
-   else if(D<=0.5){v.style.color='var(--take)';v.style.background='rgba(95,207,154,.06)';
-    vHTML='✅ 乗ってよし ── '+(D<=0?'有利圏':'SL幅の'+(D*100).toFixed(0)+'%地点')+'(SLは据え置き)';entryBase=now}
-   else{v.style.color='var(--g1)';v.style.background='rgba(232,200,119,.05)';
-    vHTML='⏸ 見送り ── SL幅の'+(D*100).toFixed(0)+'%進行済み。ルール⑤: 次の再ブレイクで';ok=false}
-   v.textContent='';v.innerHTML=vHTML;
-  } else {v.style.display='block';v.style.background='none';v.style.color='var(--faint)';v.innerHTML='現在値を入れると軍配が上がります';ok=false}
- } else v.style.display='none';
+ let entryBase=sig, ok=st.ok, notes=[];
+ const v=$('verdict'), show=(html,col,bg)=>{v.style.display='block';v.style.color=col;v.style.background=bg||'none';v.innerHTML=html};
+ v.style.display='none';
+ const age=ageMin(cur.ts);
+ if(age!==null&&age>15)notes.push('⏱ 通知から'+Math.round(age)+'分経過');
+ const now=num($('nowP').value), rAge=rateAt?(Date.now()-rateAt)/1000:null;
+ if(rAge!==null&&rAge>60)notes.push('📡 レートが古い('+Math.round(rAge)+'秒前) ── 取り直す');
+ if(!st.ok){show(st.msg,'var(--shu)','rgba(224,121,107,.07)')}
+ else if(sub==='late'){
+  if(now>0){
+   const D=(now-sig)*dir/Math.abs(sig-sl), dead=dir===1?now<=sl:now>=sl;
+   const half=2*(Math.round(now*1000)-Math.round(sig*1000))*dir<=Math.abs(Math.round(sig*1000)-Math.round(sl*1000));   // 50%判定は0.001円の整数で
+   if(dead){show('☠ シグナル死亡(SL割れ) ── 入らない。次を待つ','var(--shu)','rgba(224,121,107,.07)');ok=false}
+   else if(half){show('✅ 乗ってよし ── '+(D<=0?'有利圏':'SL幅の'+(D*100).toFixed(0)+'%地点')+'(SLは据え置き)','var(--take)','rgba(95,207,154,.06)');entryBase=now}
+   else{show('⏸ 見送り ── SL幅の'+(D*100).toFixed(0)+'%進行済み。ルール⑤: 次の再ブレイクで','var(--g1)','rgba(232,200,119,.05)');ok=false}
+  } else {show('現在値を入れると軍配が上がります','var(--faint)');ok=false}
+ } else if(isRev()){                                            // 燕返し: 寄りで成行。数量は寄り後の実レートで
+  if(now>0){
+   const bad=dir===1?now<=sl:now>=sl;
+   if(bad){show('⏸ 見送り ── 寄り'+now+'がSL'+sl+'より不利(正典も見送り)','var(--g1)','rgba(232,200,119,.05)');ok=false}
+   else{show('✅ 燕返し ── 実レート'+now+'からSL幅を計算','var(--take)','rgba(95,207,154,.06)');entryBase=now}
+  } else {show('🪶 燕返しは次の足の寄りで成行 ── 寄った後に📡で実レートを取ると数量が出ます','var(--g1)');ok=false}
+ } else if(age!==null&&age>60){show('⏱ 通知から'+Math.round(age)+'分 ── 定時乗車ではない。後乗り判定へ','var(--g1)','rgba(232,200,119,.05)');ok=false}
+ if(notes.length){v.style.display='block';v.innerHTML+=(v.innerHTML?'<br>':'')+'<span style="color:var(--g1)">'+notes.join(' / ')+'</span>'}
 
  $('sym').textContent=mode==='fx'?'USDJPY':'金スポット(CFD)';$('symp').textContent=mode==='fx'?'円':'金';
- $('waza').textContent=(cur.waza?('【'+cur.waza+'】'):'')+(cur.tag?(' '+cur.tag):'');
+ $('waza').textContent=(cur.waza?('【'+cur.waza+'】'):'')+(cur.tag?(' '+cur.tag):'')+(cur.w?' 本鈴[W]':'');
  const s=$('side');s.textContent=dir===1?'買':'売';s.className='side '+(dir===1?'buy':'sell');
  $('slP2').textContent=sl;
  window.slRaw=String(sl);
  $('pipsRow').style.display='none';window.pipsRaw='';
 
- const w=Math.abs(entryBase-sl);
+ const w=Math.abs(entryBase-sl), cap=st.cap||0, riskJPY=cap*r/100;
  if(!ok||w<=0){$('qty').innerHTML='—<small></small>';$('riskLine').textContent='';window.qtyRaw='';return}
  if(mode==='fx'){
+  if(Math.round(w*1000)<20){                                  // 下限は0.001円の整数で比べる(浮動小数の境目ずれ防止)
+$('qty').innerHTML='—<small></small>';window.qtyRaw='';$('riskLine').textContent='⚠ SL幅'+(w/0.01).toFixed(1)+'銭(2銭未満) ── 通知の誤りを疑う。計算しない';return}
   const q=Math.floor((riskJPY/w)/1000)*1000;
   if(q<=0){
    $('qty').innerHTML='0<small> ── 発注不可</small>';window.qtyRaw='';
@@ -242,7 +274,7 @@ function render(){
   $('slPips').innerHTML=Math.round(pips)+'<small>p(1p=1銭)</small>';
   window.pipsRaw=String(Math.round(pips));
   $('pipsRow').style.display='flex';
-  $('riskLine').textContent='SL幅'+(w/0.01).toFixed(0)+'銭(='+pips.toFixed(1)+'p) / 想定リスク約'+Math.round(q*w).toLocaleString()+'円(資金の'+(q*w/cap*100).toFixed(2)+'%)';
+  $('riskLine').textContent=(w<0.05?'⚠ SL幅が極小 ── 滑りに注意 / ':'')+'SL幅'+(w/0.01).toFixed(0)+'銭(='+pips.toFixed(1)+'p) / 想定リスク約'+Math.round(q*w).toLocaleString()+'円(資金の'+(q*w/cap*100).toFixed(2)+'%)';
  }else{
   const oz=Math.floor(riskJPY/(w*conv)*10)/10;
   if(oz<=0){
@@ -263,7 +295,7 @@ function render(){
 function btDiff(){
  const f=parseFloat($('fill').value);
  if(!f||cur.sig===undefined){$('btOut').textContent='';return}
- const base=(sub==='late'&&parseFloat($('nowP').value))?parseFloat($('nowP').value):cur.sig;
+ const n=num($('nowP').value), base=((sub==='late'||isRev())&&n>0)?n:cur.sig;
  const d=(f-base)*(cur.side===1?1:-1);
  const p=mode==='fx'?(d/0.01).toFixed(1)+'p':'$'+d.toFixed(2);
  $('btOut').textContent='BT差 '+(d<=0?'':'+')+p+(d<=0?'(有利)':'(不利)');
@@ -280,14 +312,22 @@ async function fetchLatest(manual){
   const r=await fetch(wu+'/latest'+q,{cache:'no-store'});
   const j=await r.json();
   if(j&&j.body){
-   $('notice').value=j.body; parseNotice(j.body); render();
-   $('tsChip').textContent='✅ '+(j.ts||'');
+   $('notice').value=j.body; parseNotice(j.body,j.ts); render();
+   const a=ageMin(j.ts);
+   $('tsChip').textContent='✅ '+(j.ts||'')+(a!==null?'('+Math.round(a)+'分前)':'')+(/\[W\]/.test(j.body)?' 本鈴':'');
+   if(isRev())fetchRate(false);
   } else if(manual){$('tsChip').textContent='勾玉に未着(シグナルなし)'}
   try{
    const r2=await fetch(wu+'/latest_sl'+q,{cache:'no-store'});
    const j2=await r2.json();
-   if(j2&&j2.body&&/新SL/.test(j2.body)){showSLMove(j2.body);
-    $('tsChip').textContent+=' / 📍SL移動 '+(j2.ts||'')}
+   if(j2&&j2.body&&/新SL/.test(j2.body)){
+    // SL移動の札の照合: 今の玉(技タグ・売買)と同じか、今の通知より後か
+    const m=j2.body.match(/\]\s*(v2X|SLREV|v2)\s+(buy|sell)/i); let warn='';
+    if(cur.sl!==undefined&&m){const sd=/buy/i.test(m[2])?1:-1;
+     if(m[1].toLowerCase()!==(cur.tag||'').toLowerCase()||sd!==cur.side)warn='この札は今の玉('+cur.tag+' '+(cur.side>0?'buy':'sell')+')と別の玉('+m[1]+' '+m[2]+')のSL移動';}
+    const older=j&&j.ts&&j2.ts&&String(j2.ts)<String(j.ts);
+    if(!older){showSLMove(j2.body,warn);$('tsChip').textContent+=' / 📍SL移動 '+(j2.ts||'')+(warn?' ⚠別の玉':'')}
+   }
   }catch(e){}
  }catch(e){if(manual)$('tsChip').textContent='取得失敗 ── URLと合言葉を確認'}
 }
@@ -318,12 +358,12 @@ async function fetchRate(manual){
   return;
  }
  const px=cur.side===1?parseFloat(u.ask):cur.side===-1?parseFloat(u.bid):(parseFloat(u.ask)+parseFloat(u.bid))/2;
- $('nowP').value=px.toFixed(3);
+ $('nowP').value=px.toFixed(3); rateAt=Date.now();
  const t=new Date();
  $('rateInfo').textContent='参考値('+src+' '+(cur.side===1?'ask':cur.side===-1?'bid':'mid')+') '
   +t.toTimeString().slice(0,8)+' ── 発注前にGMO画面の実レートで最終確認';
  render();
- if(!rateTimer)rateTimer=setInterval(()=>{if(sub==='late'&&mode==='fx')fetchRate(false);else{clearInterval(rateTimer);rateTimer=null}},5000);
+ if(!rateTimer)rateTimer=setInterval(()=>{if((sub==='late'||isRev())&&mode==='fx')fetchRate(false);else{clearInterval(rateTimer);rateTimer=null}},5000);
 }
 
 if($('wurl').value)fetchLatest(false);
