@@ -101,6 +101,10 @@ footer{text-align:center;color:var(--faint);font-size:9.5px;margin-top:22px;lett
  <button class="tsbtn" id="tsBtn" onclick="fetchLatest(true)">🔄 勾玉から最新を取得</button>
  <span id="tsChip"></span>
 </div>
+<div class="fetchrow" id="pickRow" style="display:none">
+ <button class="tsbtn" id="pickA" onclick="loadCard('A')">兄の札(正典[W])</button>
+ <button class="tsbtn" id="pickB" onclick="loadCard('B')">弟の札([W4])</button>
+</div>
 
 <div class="now" id="nowBox"><label>現在値(後乗り)</label>
 <div style="display:flex;gap:8px;align-items:center">
@@ -141,7 +145,8 @@ footer{text-align:center;color:var(--faint);font-size:9.5px;margin-top:22px;lett
   <div class="cell wide"><label>勾玉URL(例 https://xxx.workers.dev)</label><input id="wurl" type="url" value=""></div>
   <div class="cell wide"><label>合言葉(key)</label><input id="wkey" type="text" value=""></div>
   <div class="cell"><label>資金(円)・必須</label><input id="cap" type="tel" inputmode="numeric" value="" placeholder="例 100000"></div>
-  <div class="cell"><label>リスク(%)</label><input id="risk" type="tel" inputmode="decimal" value="1.0"></div>
+  <div class="cell"><label>リスク(%)・合計</label><input id="risk" type="tel" inputmode="decimal" value="1.0"></div>
+  <div class="cell wide"><label>運用形</label><select id="futago"><option value="1">双子(兄=正典[W]・弟[W4] 各半分=0.5%ずつ)</option><option value="0">正典のみ(1枚で全額)</option></select></div>
   <div class="cell"><label>過去最高資金(盾・自動更新)</label><input id="peak" type="tel" inputmode="numeric" value="" placeholder="空欄=資金と同じ"></div>
   <div class="cell"><label>金換算 1$=円</label><input id="conv" type="tel" inputmode="decimal" value="158"></div>
  </div>
@@ -153,14 +158,16 @@ footer{text-align:center;color:var(--faint);font-size:9.5px;margin-top:22px;lett
 <script>
 // 八咫鏡・弐式 改(2026-10-31・裁定4): 資金は必須・過去最高は自動更新・DD12%新規停止/15%全停止・燕返しは寄り後の実レートで・
 //   リスク1%超は計算しない・SL幅2銭未満は計算しない・古い通知/レートの警告・SL移動札の照合・本鈴[W]書式
+// 弐式 改二(2026-11-01・双子): 運用形=双子なら1枚あたり「合計リスク÷2」(兄=正典[W]・弟=[W4])。弟の札は /latest4・/latest_sl4。正典のみの運用形では弟の札で数量を出さない
 const $=id=>document.getElementById(id);
-let mode='fx', sub='main', cur={}, rateAt=0, slInfo=null;
-const KEYS=['cap','risk','peak','conv','wurl','wkey'];
+let mode='fx', sub='main', cur={}, rateAt=0, slInfo=null, cards={A:null,B:null};
+const KEYS=['cap','risk','peak','conv','wurl','wkey','futago'];
+const isTwin=()=>$('futago').value!=='0';
 // 端末の保存領域が使えない環境(プライベートモード等)でも計算は動かす
 const LS={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
 function save(){KEYS.forEach(k=>LS.set('jo2_'+k,$(k).value))}
 function load(){KEYS.forEach(k=>{const v=LS.get('jo2_'+k);if(v)$(k).value=v})}
-load(); KEYS.forEach(k=>$(k).addEventListener('input',()=>{save();render()}));
+load(); KEYS.forEach(k=>{$(k).addEventListener('input',()=>{save();render()});$(k).addEventListener('change',()=>{save();render()})});
 // 数字欄の読み取り: 全角・カンマ・空白を許す。読めなければNaN(空欄は'')
 function num(v){const t=String(v??'').replace(/[０-９．]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/[,，\s]/g,'');
  if(t==='')return '';return /^\d+(\.\d+)?$/.test(t)?parseFloat(t):NaN}
@@ -182,7 +189,7 @@ function parseNotice(t,ts){
  if(!(mSig&&mSL))return;
  cur.sig=parseFloat(mSig[1]);cur.sl=parseFloat(mSL[1]);
  cur.side=/buy|買/i.test(t)?1:(/sell|売/i.test(t)?-1:(cur.sl<cur.sig?1:-1));
- cur.waza=mW?mW[1]:'';cur.tag=mTag?mTag[1]:'';cur.w=/\[W\]/.test(t);cur.ts=ts||null;
+ cur.waza=mW?mW[1]:'';cur.tag=mTag?mTag[1]:'';cur.w=/\[W4?\]/.test(t);cur.oto=/\[W4\]/.test(t);cur.ts=ts||null;
 }
 const isRev=()=>/^SLREV$/i.test(cur.tag||'');
 
@@ -207,7 +214,8 @@ function riskState(){
  const dd=(P-cap)/P;
  if(dd>=0.15)return{ok:false,stop:2,dd,msg:'⛔ 全停止 ── 過去最高から'+(dd*100).toFixed(1)+'%下(15%以上)。新規なし・建玉も決済'};
  if(dd>=0.12)return{ok:false,stop:1,dd,msg:'⛔ 新規停止 ── 過去最高から'+(dd*100).toFixed(1)+'%下(12%以上)。新規は出さない'};
- return{ok:true,cap,P,dd,r:dd>=0.08?r/2:r,half:dd>=0.08};
+ const per=isTwin()?0.5:1;                                        // 双子: 1枚=合計の半分
+ return{ok:true,cap,P,dd,r:(dd>=0.08?r/2:r)*per,half:dd>=0.08,twin:per<1};
 }
 function shieldRisk(){
  const s=riskState();
@@ -232,6 +240,7 @@ function render(){
  const now=num($('nowP').value), rAge=rateAt?(Date.now()-rateAt)/1000:null;
  if(rAge!==null&&rAge>60)notes.push('📡 レートが古い('+Math.round(rAge)+'秒前) ── 取り直す');
  if(!st.ok){show(st.msg,'var(--shu)','rgba(224,121,107,.07)')}
+ else if(cur.oto&&!st.twin){show('弟の札([W4]) ── 運用形が「正典のみ」なので張らない(⚙で双子に)','var(--g1)','rgba(232,200,119,.05)');ok=false}
  else if(sub==='late'){
   if(now>0){
    const D=(now-sig)*dir/Math.abs(sig-sl), dead=dir===1?now<=sl:now>=sl;
@@ -250,7 +259,7 @@ function render(){
  if(notes.length){v.style.display='block';v.innerHTML+=(v.innerHTML?'<br>':'')+'<span style="color:var(--g1)">'+notes.join(' / ')+'</span>'}
 
  $('sym').textContent=mode==='fx'?'USDJPY':'金スポット(CFD)';$('symp').textContent=mode==='fx'?'円':'金';
- $('waza').textContent=(cur.waza?('【'+cur.waza+'】'):'')+(cur.tag?(' '+cur.tag):'')+(cur.w?' 本鈴[W]':'');
+ $('waza').textContent=(cur.waza?('【'+cur.waza+'】'):'')+(cur.tag?(' '+cur.tag):'')+(cur.oto?' 本鈴[W4]・双子の弟':cur.w?(' 本鈴[W]'+(st.twin?'・双子の兄':'')):'')+(st.ok&&st.twin?' / 1枚'+st.r.toFixed(2)+'%':'');
  const s=$('side');s.textContent=dir===1?'買':'売';s.className='side '+(dir===1?'buy':'sell');
  $('slP2').textContent=sl;
  window.slRaw=String(sl);
@@ -309,16 +318,30 @@ async function fetchLatest(manual){
  if(!wu){if(manual)$('tsChip').textContent='⚙で勾玉URLと合言葉を設定してください';return}
  try{
   const q='?key='+encodeURIComponent(wk);
-  const r=await fetch(wu+'/latest'+q,{cache:'no-store'});
-  const j=await r.json();
-  if(j&&j.body){
+  const getJ=async p=>{const r=await fetch(wu+p+q,{cache:'no-store'});return r.json()};
+  cards.A=await getJ('/latest');
+  cards.B=null; if(isTwin()){try{cards.B=await getJ('/latest4')}catch(e){}}
+  const has=c=>c&&c.body;
+  $('pickRow').style.display=isTwin()&&(has(cards.A)||has(cards.B))?'flex':'none';
+  if(!has(cards.A)&&!has(cards.B)){if(manual)$('tsChip').textContent='勾玉に未着(シグナルなし)';return}
+  // 新しい方を出す(同じ足で兄弟そろって鳴った時は弟が2分後=弟が出る。兄の札はボタンで)
+  const pick=!has(cards.B)?'A':!has(cards.A)?'B':(String(cards.B.ts)>String(cards.A.ts)?'B':'A');
+  await loadCard(pick);
+ }catch(e){if(manual)$('tsChip').textContent='取得失敗 ── URLと合言葉を確認'}
+}
+async function loadCard(which){
+ const j=cards[which]; if(!j||!j.body){$('tsChip').textContent=(which==='B'?'弟':'兄')+'の札はまだありません';return}
+ const wu=($('wurl').value||'').replace(/\/$/,''), q='?key='+encodeURIComponent($('wkey').value||'');
+ $('pickA').style.opacity=which==='A'?1:.55; $('pickB').style.opacity=which==='B'?1:.55;
+ try{
+  {
    $('notice').value=j.body; parseNotice(j.body,j.ts); render();
-   const a=ageMin(j.ts);
-   $('tsChip').textContent='✅ '+(j.ts||'')+(a!==null?'('+Math.round(a)+'分前)':'')+(/\[W\]/.test(j.body)?' 本鈴':'');
+   const a=ageMin(j.ts), o=cards[which==='A'?'B':'A'];
+   $('tsChip').textContent='✅ '+(which==='B'?'弟 ':isTwin()?'兄 ':'')+(j.ts||'')+(a!==null?'('+Math.round(a)+'分前)':'')+(/\[W4?\]/.test(j.body)?' 本鈴':'')+(isTwin()&&o&&o.body?' / '+(which==='A'?'弟':'兄')+'の最新 '+String(o.ts||'').slice(5,16):'');
    if(isRev())fetchRate(false);
-  } else if(manual){$('tsChip').textContent='勾玉に未着(シグナルなし)'}
+  }
   try{
-   const r2=await fetch(wu+'/latest_sl'+q,{cache:'no-store'});
+   const r2=await fetch(wu+(which==='B'?'/latest_sl4':'/latest_sl')+q,{cache:'no-store'});
    const j2=await r2.json();
    if(j2&&j2.body&&/新SL/.test(j2.body)){
     // SL移動の札の照合: 今の玉(技タグ・売買)と同じか、今の通知より後か
@@ -329,7 +352,7 @@ async function fetchLatest(manual){
     if(!older){showSLMove(j2.body,warn);$('tsChip').textContent+=' / 📍SL移動 '+(j2.ts||'')+(warn?' ⚠別の玉':'')}
    }
   }catch(e){}
- }catch(e){if(manual)$('tsChip').textContent='取得失敗 ── URLと合言葉を確認'}
+ }catch(e){$('tsChip').textContent='取得失敗 ── URLと合言葉を確認'}
 }
 
 // ── 現在値の参考取得(勾玉中継→直接→手動の三段構え) ──
