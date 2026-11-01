@@ -234,7 +234,7 @@ function render(){
  const dir=cur.side, sig=cur.sig, sl=cur.sl;
  let entryBase=sig, ok=st.ok, notes=[];
  const v=$('verdict'), show=(html,col,bg)=>{v.style.display='block';v.style.color=col;v.style.background=bg||'none';v.innerHTML=html};
- v.style.display='none';
+ v.style.display='none';v.innerHTML='';                 // 改二修(2026-11-02): 前の札の軍配と注意書きを残さない
  const age=ageMin(cur.ts);
  if(age!==null&&age>15)notes.push('⏱ 通知から'+Math.round(age)+'分経過');
  const now=num($('nowP').value), rAge=rateAt?(Date.now()-rateAt)/1000:null;
